@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title><%= recipe.title %></title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f7fb;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 60%;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+      font-size: 26px;
+    }
+
+    .recipe-details {
+      margin-top: 20px;
+    }
+
+    .buttons {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .buttons button, .buttons a {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    .buttons a {
+      display: inline-block;
+    }
+
+    .buttons button:hover, .buttons a:hover {
+      background-color: #0056b3;
+    }
+
+    .buttons form {
+      display: inline-block;
+    }
+
+    .instructions-list {
+      margin-top: 20px;
+    }
+
+    .instructions-list ul {
+      list-style-type: decimal; /* 숫자 목록 유지 */
+      padding-left: 20px;  /* 왼쪽 여백 추가 */
+    }
+
+    .instructions-list li {
+      margin-bottom: 10px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1><%= recipe.title %></h1>
+    <div class="recipe-details">
+      <p><strong>작성자:</strong> <%= recipe.createdBy.username %></p>
+      <p><strong>재료:</strong> <%= recipe.ingredients.join(', ') %></p>
+    </div>
+
+    <div class="instructions-list">
+      <h3>만드는 법:</h3>
+      <ul>
+        <% recipe.instructions.forEach(function(step) { %>
+          <li><%= step %></li> <!-- 단계별로 내용 출력 -->
+        <% }); %>
+      </ul>
+    </div>
+
+    <div class="buttons">
+      <!-- 즐겨찾기 버튼 -->
+      <% if (user.favorites && user.favorites.includes(recipe._id)) { %>
+        <!-- 이미 즐겨찾기한 레시피일 경우 -->
+        <button disabled>이미 즐겨찾기</button>
+      <% } else { %>
+        <!-- 즐겨찾기 추가 -->
+        <form action="/dashboard/recipe/<%= recipe._id %>/favorite" method="POST" style="display:inline;">
+          <button type="submit">즐겨찾기 추가</button>
+        </form>
+      <% } %>
+
+      <!-- 홈 화면으로 돌아가기 (대시보드로 돌아가기) -->
+      <a href="/dashboard">대시보드로 돌아가기</a> <!-- 대시보드로 돌아가는 링크 -->
+    </div>
+  </div>
+
+</body>
+</html>

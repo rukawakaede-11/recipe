@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>검색 결과</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f7fb;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 80%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .results-list {
+      list-style: none;
+      padding: 0;
+    }
+    .result-item {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .result-item a {
+      color: #007bff;
+      font-size: 18px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .result-item a:hover {
+      text-decoration: underline;
+    }
+    .result-item p {
+      font-size: 16px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>검색 결과</h1>
+    <ul class="results-list">
+      <% if (searchResults.length > 0) { %>
+        <% searchResults.forEach((recipe, index) => { %>
+          <li class="result-item">
+            <a href="/dashboard/recipe/<%= recipe._id %>"><%= index + 1 %>. <%= recipe.title %></a>
+            <p><strong>재료:</strong> <%= recipe.ingredients.join(', ') %></p>
+          </li>
+        <% }); %>
+      <% } else { %>
+        <p>검색 결과가 없습니다.</p>
+      <% } %>
+    </ul>
+  </div>
+
+</body>
+</html>
