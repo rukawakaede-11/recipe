@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
   res.redirect('/auth/login');
 });
 
-const PORT = 8888;
+const PORT = 9005;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`서버가 ${PORT}번 포트에서 실행 중입니다.`);
 });
