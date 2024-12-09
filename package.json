@@ -7,5 +7,10 @@
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "mongoose": "^8.8.2"
+  },
+  "scripts": {
+  "start": "node app.js",
+  "prestart:prod": "rimraf dist && npm run build",
+  "web": "npm run start:prod"
   }
 }
