@@ -1,9 +1,9 @@
 const express = require('express');
 const Recipe = require('../models/Recipe');
 const User = require('../models/User');
+const Comment = require('../models/Comment');
 const router = express.Router();
 
-// 대시보드: 즐겨찾기 및 내가 작성한 레시피 표시
 router.get('/', async (req, res) => {
   if (!req.session.user) {
     return res.redirect('/auth/login');
@@ -19,37 +19,32 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 새 레시피 작성 페이지
 router.get('/create', (req, res) => {
   if (!req.session.user) {
     return res.redirect('/auth/login');
   }
 
-  res.render('create-recipe'); // 새 레시피 작성 페이지를 렌더링
+  res.render('create-recipe');
 });
 
 router.post('/create', async (req, res) => {
-  // 폼 데이터 받기
   const { title, ingredients, instructions } = req.body;
   
-  // 폼 데이터 검증 (빈 값이 없는지 확인)
   if (!title || !ingredients || !instructions || instructions.length === 0) {
     console.error("필수 입력 항목이 비어 있습니다.");
     return res.status(400).send("모든 필드를 채워주세요.");
   }
 
   try {
-    // 새로운 레시피 생성
     const newRecipe = new Recipe({
       title,
-      ingredients: ingredients.split(','), // 쉼표로 구분된 재료 처리
+      ingredients: ingredients.split(','),
       instructions,
-      createdBy: req.session.user.id, // 사용자 ID (로그인한 사용자)
+      createdBy: req.session.user.id,
     });
 
-    // 레시피 저장
     await newRecipe.save();
-    res.redirect('/dashboard'); // 대시보드로 리다이렉트
+    res.redirect('/dashboard');
 
   } catch (err) {
     console.error("레시피 작성 중 오류:", err);
@@ -57,24 +52,69 @@ router.post('/create', async (req, res) => {
   }
 });
 
-// 레시피 상세 페이지
 router.get('/recipe/:id', async (req, res) => {
   if (!req.session.user) {
-    return res.redirect('/auth/login'); // 로그인하지 않으면 로그인 페이지로 리디렉션
+    return res.redirect('/auth/login');
   }
 
   try {
-    const recipe = await Recipe.findById(req.params.id)
-      .populate('createdBy'); // createdBy 필드를 전체 객체로 가져옴
-    res.render('recipe-detail', { recipe, user: req.session.user });
+    const recipe = await Recipe.findById(req.params.id).populate('createdBy');
+    const comments = await Comment.find({ recipe: req.params.id }).populate('createdBy', 'username');
+
+    res.render('recipe-detail', { recipe, user: req.session.user, comments });
   } catch (err) {
     console.error('레시피 로드 중 오류:', err);
     res.status(404).send('레시피를 찾을 수 없습니다.');
   }
 });
 
+router.post('/recipe/:id/comment', async (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('/auth/login');
+  }
 
-// 레시피 수정 페이지
+  const { content } = req.body;
+  const recipeId = req.params.id;
+
+  try {
+    const comment = new Comment({
+      content,
+      createdBy: req.session.user.id,
+      recipe: recipeId
+    });
+
+    await comment.save();
+    res.redirect(`/dashboard/recipe/${recipeId}`);
+  } catch (err) {
+    console.error('댓글 작성 중 오류:', err);
+    res.status(500).send('댓글 작성 중 오류가 발생했습니다.');
+  }
+});
+
+router.post('/recipe/:id/comment/:commentId/delete', async (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('/auth/login');
+  }
+
+  const { commentId } = req.params;
+  const { id } = req.params;
+
+  try {
+    const comment = await Comment.findById(commentId);
+
+    if (comment.createdBy.toString() !== req.session.user.id) {
+      return res.status(403).send('권한이 없습니다.');
+    }
+
+    await Comment.findByIdAndDelete(commentId);
+
+    res.redirect(`/dashboard/recipe/${id}`);
+  } catch (err) {
+    console.error('댓글 삭제 중 오류:', err);
+    res.status(500).send('댓글 삭제 중 오류가 발생했습니다.');
+  }
+});
+
 router.get('/recipe/:id/edit', async (req, res) => {
   if (!req.session.user) return res.redirect('/auth/login');
   try {
@@ -89,7 +129,6 @@ router.get('/recipe/:id/edit', async (req, res) => {
   }
 });
 
-// 레시피 수정 처리
 router.post('/recipe/:id/edit', async (req, res) => {
   if (!req.session.user) return res.redirect('/auth/login');
   const { title, ingredients, instructions } = req.body;
@@ -109,7 +148,6 @@ router.post('/recipe/:id/edit', async (req, res) => {
   }
 });
 
-// 레시피 삭제
 router.get('/recipe/:id/delete', async (req, res) => {
   if (!req.session.user) return res.redirect('/auth/login');
   try {
@@ -125,7 +163,6 @@ router.get('/recipe/:id/delete', async (req, res) => {
   }
 });
 
-// 즐겨찾기에서 레시피 삭제
 router.post('/recipe/:id/favorite/remove', async (req, res) => {
   if (!req.session.user) return res.redirect('/auth/login');
   const { id } = req.params;
@@ -133,17 +170,16 @@ router.post('/recipe/:id/favorite/remove', async (req, res) => {
     const user = await User.findById(req.session.user.id);
     user.favorites = user.favorites.filter(favId => favId.toString() !== id);
     await user.save();
-    res.redirect('/dashboard'); // 대시보드로 리디렉션
+    res.redirect('/dashboard');
   } catch (err) {
     console.error(err);
     res.status(500).send('즐겨찾기 삭제 중 오류가 발생했습니다.');
   }
 });
 
-// 즐겨찾기 추가 처리
 router.post('/recipe/:id/favorite', async (req, res) => {
   if (!req.session.user) {
-    return res.redirect('/auth/login'); // 로그인하지 않은 경우 로그인 페이지로 리디렉션
+    return res.redirect('/auth/login');
   }
 
   try {
@@ -151,12 +187,10 @@ router.post('/recipe/:id/favorite', async (req, res) => {
     const recipe = await Recipe.findById(req.params.id);
 
     if (!user.favorites.includes(recipe._id)) {
-      // 즐겨찾기 목록에 해당 레시피가 없다면 추가
       user.favorites.push(recipe._id);
       await user.save();
     }
 
-    // 대시보드로 리디렉션
     res.redirect('/dashboard');
   } catch (err) {
     console.error('즐겨찾기 추가 중 오류:', err);
@@ -164,33 +198,52 @@ router.post('/recipe/:id/favorite', async (req, res) => {
   }
 });
 
-// 검색 결과 페이지
 router.get('/search-results', async (req, res) => {
   if (!req.session.user) {
-    return res.redirect('/auth/login'); // 로그인하지 않으면 로그인 페이지로 리디렉션
+    return res.redirect('/auth/login');
   }
 
-  const { query, type } = req.query; // 검색어와 검색 유형
+  const { query, type } = req.query;
 
   try {
     let searchResults = [];
     if (type === 'name') {
-      // 음식 이름으로 검색
       searchResults = await Recipe.find({
-        title: { $regex: query, $options: 'i' } // 제목에 검색어가 포함된 레시피 찾기
+        title: { $regex: query, $options: 'i' }
       });
     } else if (type === 'ingredient') {
-      // 재료로 검색
       searchResults = await Recipe.find({
-        ingredients: { $regex: query, $options: 'i' } // 재료 목록에서 검색어가 포함된 레시피 찾기
+        ingredients: { $regex: query, $options: 'i' }
       });
     }
 
-    // 검색 결과를 렌더링
     res.render('search-results', { searchResults, username: req.session.user.username });
   } catch (err) {
     console.error('검색 중 오류:', err);
     res.status(500).send('검색 중 오류가 발생했습니다.');
+  }
+});
+
+router.post('/recipe/:id/recommend', async (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('/auth/login');
+  }
+
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+
+    if (recipe.usersRecommended.includes(req.session.user.id)) {
+      return res.send('<script>alert("이미 추천했습니다."); window.history.back();</script>');
+    }
+
+    recipe.usersRecommended.push(req.session.user.id);
+    recipe.recommendedCount += 1;
+    await recipe.save();
+
+    res.redirect(`/dashboard/recipe/${req.params.id}`);
+  } catch (err) {
+    console.error('추천 처리 중 오류:', err);
+    res.status(500).send('추천 처리 중 오류가 발생했습니다.');
   }
 });
 

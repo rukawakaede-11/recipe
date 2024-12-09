@@ -115,7 +115,7 @@
     .home-link {
       display: block;
       text-align: center;
-      margin-top: 20px;  /* 여백 추가 */
+      margin-top: 20px;
     }
 
   </style>
@@ -148,14 +148,13 @@
       </div>
     </form>
 
-    <!-- 홈 화면으로 돌아가기 텍스트 변경 -->
     <a href="/dashboard" class="home-link">홈 화면으로 돌아가기</a>
   </div>
 
   <script>
     document.getElementById('add-instruction').addEventListener('click', function() {
       const instructionContainer = document.getElementById('instructions-container');
-      const stepNumber = instructionContainer.children.length + 1; // 단계 번호
+      const stepNumber = instructionContainer.children.length + 1;
 
       const newInstruction = document.createElement('div');
       newInstruction.classList.add('instruction-item');
@@ -165,7 +164,6 @@
 
       instructionContainer.appendChild(newInstruction);
 
-      // 단계 삭제 버튼 활성화
       document.getElementById('remove-instruction').disabled = false;
     });
 
@@ -173,14 +171,12 @@
       const instructionContainer = document.getElementById('instructions-container');
       const lastStep = instructionContainer.lastElementChild;
 
-      // 단계 1일 때는 삭제 불가
       if (instructionContainer.children.length === 1) {
         return;
       }
 
       instructionContainer.removeChild(lastStep);
 
-      // 마지막 단계 삭제 후 단계 삭제 버튼 상태 확인
       if (instructionContainer.children.length === 1) {
         document.getElementById('remove-instruction').disabled = true;
       }

@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>레시피 수정</title>
   <style>
-    /* 기본 스타일 */
     body {
       font-family: 'Arial', sans-serif;
       background-color: #f5f7fb;
@@ -89,7 +88,6 @@
       text-decoration: underline;
     }
 
-    /* 단계별 입력란 */
     .instructions-container {
       margin-top: 20px;
     }
@@ -114,7 +112,7 @@
       border-radius: 5px;
       cursor: pointer;
       height: 38px;
-      margin-top: 13px; /* 조금 더 내리기 위해 margin-top 13px으로 수정 */
+      margin-top: 13px;
     }
 
     .remove-button:hover {
@@ -136,17 +134,16 @@
       background-color: #218838;
     }
 
-    /* 버튼들을 일렬로 배치 */
     .button-container {
       display: flex;
-      justify-content: flex-start; /* 일렬로 배치 */
-      gap: 10px; /* 버튼들 간 여백 */
-      margin-top: 20px; /* 버튼들 간격 */
-      align-items: center; /* 세로 정렬 추가 */
+      justify-content: flex-start;
+      gap: 10px;
+      margin-top: 20px;
+      align-items: center;
     }
 
     .submit-button-container {
-      margin-top: 20px; /* 수정하기 버튼과 간격을 띄우기 */
+      margin-top: 20px;
     }
 
   </style>
@@ -181,17 +178,14 @@
       </div>
     </form>
 
-    <!-- 레시피 삭제 폼 -->
     <form action="/dashboard/recipe/<%= recipe._id %>/delete" method="GET" style="margin-top: 20px;">
       <button type="submit" class="delete-btn">레시피 삭제</button>
     </form>
 
-    <!-- 대시보드로 돌아가기 링크 -->
     <a href="/dashboard" class="back-link">대시보드로 돌아가기</a>
   </div>
 
   <script>
-    // "단계 추가" 버튼을 클릭하면 새로운 입력 칸을 추가하는 함수
     document.getElementById('add-instruction').addEventListener('click', function() {
       const instructionContainer = document.getElementById('instructions-container');
       const stepNumber = instructionContainer.children.length + 1; // 단계 번호
@@ -204,23 +198,19 @@
       
       instructionContainer.appendChild(newInstruction);
 
-      // 단계 삭제 버튼 활성화
       document.getElementById('remove-instruction').disabled = false;
     });
 
-    // 삭제 버튼 클릭 시 해당 입력 칸 삭제
     function removeStep() {
       const instructionContainer = document.getElementById('instructions-container');
       const lastStep = instructionContainer.lastElementChild;
 
-      // 단계 1일 때는 삭제 불가
       if (instructionContainer.children.length === 1) {
         return;
       }
 
       instructionContainer.removeChild(lastStep);
 
-      // 마지막 단계 삭제 후 단계 삭제 버튼 상태 확인
       if (instructionContainer.children.length === 1) {
         document.getElementById('remove-instruction').disabled = true;
       }
